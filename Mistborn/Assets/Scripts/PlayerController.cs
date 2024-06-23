@@ -1,128 +1,59 @@
-using System.Diagnostics;
 using UnityEngine;
-
-[DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
 public class PlayerController : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float jumpForce = 10f;
-    public int maxCoins = 10;
-    private int currentCoins;
-    private bool isGrounded;
-    private bool hasSteelPower;
-    private bool hasPewterPower;
-    private bool hasIronPower;
+    public float speed = 5.0f; // Change 'bool' to 'float'
+    public float jumpForce = 10.0f;
+    public float doubleJumpForce = 15.0f;
 
-    private Rigidbody2D rb;
-    private SpriteRenderer sr;
+    public bool isGrounded = true; // Change 'private' or 'protected' to 'public'
+    public bool hasDoubleJumped = false;
+    public Rigidbody2D rb;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>();
-        currentCoins = maxCoins;
     }
 
     void Update()
     {
-        Move();
-        Jump();
-        Attack();
-        Dash();
-        BurnSteel();
-        BurnPewter();
-        AttractIron();
-    }
+        float horizontalInput = Input.GetAxis("Horizontal");
+        float verticalInput = Input.GetAxis("Vertical");
 
-    void Move()
-    {
-        float move = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector2(move * moveSpeed, rb.velocity.y);
+        Vector2 movement = new Vector2(horizontalInput, verticalInput);
 
-        if (move < 0) sr.flipX = true;
-        else if (move > 0) sr.flipX = false;
-    }
+        rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
 
-    void Jump()
-    {
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-        }
-        else if (Input.GetButtonDown("Jump") && !isGrounded && hasSteelPower && currentCoins > 0)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            currentCoins--;
-        }
-    }
-
-    void Attack()
-    {
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            // Implementar ataque en la dirección del jugador
-        }
-    }
-
-    void Dash()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftControl) && isGrounded)
-        {
-            // Implementar dash en la dirección del movimiento
-        }
-    }
-
-    void BurnSteel()
-    {
-        if (Input.GetKeyDown(KeyCode.C) && currentCoins > 0)
-        {
-            // Implementar lanzamiento de monedas
-            currentCoins--;
-        }
-    }
-
-    void BurnPewter()
-    {
-        if (Input.GetKeyDown(KeyCode.V) && hasPewterPower)
-        {
-            // Implementar aumento de fuerza, velocidad y curación
-        }
-    }
-
-    void AttractIron()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && hasIronPower)
-        {
-            // Implementar atracción a barras de metal
-        }
-    }
-
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
-
-    private void OnCollisionStay2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             isGrounded = false;
         }
+
+        if (Input.GetButtonDown("Jump") && !isGrounded && !hasDoubleJumped)
+        {
+            rb.AddForce(Vector2.up * doubleJumpForce, ForceMode2D.Impulse);
+            hasDoubleJumped = true;
+        }
+    }
+    public void Damage(int amount, Transform attackerTransform, int ragdollForce)
+    {
+        // Implement damage logic here
+        // For example, reduce health by the damage amount
+        health -= amount;
+
+        // Apply ragdoll force if the player is killed
+        if (health <= 0)
+        {
+            // Ragdoll logic here
+        }
     }
 
-    private string GetDebuggerDisplay()
+    void OnCollisionEnter2D(Collision2D collision)
     {
-        return ToString();
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+            hasDoubleJumped = false;
+        }
     }
 }
